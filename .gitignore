@@ -54,4 +54,12 @@ dkms.conf
 # debug information files
 *.dwo
 
+# Output of cmake
 out/
+
+# environment variables
+.env
+
+# Test programs
+*_test.c
+*.out

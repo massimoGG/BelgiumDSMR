@@ -8,37 +8,41 @@
 struct hashkeyval
 {
     unsigned char hash;
+    unsigned char tag;
+    unsigned char digitWidth; // Total number of digits
+    unsigned char digitPoint; // number of digits after decimal point
+
     void (*f)(char *line, int lineLength);
 };
 
 #define HASHMAPSIZE 26
 struct hashkeyval hashmap[HASHMAPSIZE] = {
-    {.hash = 193}, // 0-0:1.0.0
-    {.hash = 49},  // 0-0:96.1.1
-    {.hash = 249}, // 1-0:1.8.1
-    {.hash = 1},   // 1-0:1.8.2
-    {.hash = 253}, // 1-0:2.8.1
-    {.hash = 5},   // 1-0:2.8.2
-    {.hash = 250}, // 0-0:96.14.0
-    {.hash = 235}, // 1-0:1.7.0
-    {.hash = 239}, // 1-0:2.7.0
-    {.hash = 242}, // 0-0:96.13.0
-    {.hash = 86},  // 1-0:32.7.0
-    {.hash = 78},  // 1-0:52.7.0
-    {.hash = 70},  // 1-0:72.7.0
-    {.hash = 81},  // 1-0:31.7.0
-    {.hash = 73},  // 1-0:51.7.0
-    {.hash = 65},  // 1-0:71.7.0
-    {.hash = 85},  // 1-0:21.7.0
-    {.hash = 77},  // 1-0:41.7.0
-    {.hash = 69},  // 1-0:61.7.0
-    {.hash = 90},  // 1-0:22.7.0
-    {.hash = 82},  // 1-0:42.7.0
-    {.hash = 74},  // 1-0:62.7.0
-    {.hash = 56},  // 0-1:24.1.0
-    {.hash = 217}, // 1-0:1.4.0
-    {.hash = 229}, // 1-0:1.6.0
-    {.hash = 50},  // 0-0:98.1.0
+    {.hash = 193},                                   // 0-0:1.0.0
+    {.hash = 49},                                    // 0-0:96.1.1
+    {.hash = 249, .digitWidth = 9, .digitPoint = 3}, // 1-0:1.8.1
+    {.hash = 1, .digitWidth = 9, .digitPoint = 3},   // 1-0:1.8.2
+    {.hash = 253, .digitWidth = 9, .digitPoint = 3}, // 1-0:2.8.1
+    {.hash = 5, .digitWidth = 9, .digitPoint = 3},   // 1-0:2.8.2
+    {.hash = 250},                                   // 0-0:96.14.0
+    {.hash = 235, .digitWidth = 5, .digitPoint = 3}, // 1-0:1.7.0
+    {.hash = 239, .digitWidth = 5, .digitPoint = 3}, // 1-0:2.7.0
+    {.hash = 242},                                   // 0-0:96.13.0
+    {.hash = 86, .digitWidth = 4, .digitPoint = 1},  // 1-0:32.7.0
+    {.hash = 78, .digitWidth = 4, .digitPoint = 1},  // 1-0:52.7.0
+    {.hash = 70, .digitWidth = 4, .digitPoint = 1},  // 1-0:72.7.0
+    {.hash = 81, .digitWidth = 5, .digitPoint = 1},  // 1-0:31.7.0
+    {.hash = 73, .digitWidth = 5, .digitPoint = 1},  // 1-0:51.7.0
+    {.hash = 65, .digitWidth = 5, .digitPoint = 1},  // 1-0:71.7.0
+    {.hash = 85, .digitWidth = 5, .digitPoint = 3},  // 1-0:21.7.0
+    {.hash = 77, .digitWidth = 5, .digitPoint = 3},  // 1-0:41.7.0
+    {.hash = 69, .digitWidth = 5, .digitPoint = 3},  // 1-0:61.7.0
+    {.hash = 90, .digitWidth = 5, .digitPoint = 3},  // 1-0:22.7.0
+    {.hash = 82, .digitWidth = 5, .digitPoint = 3},  // 1-0:42.7.0
+    {.hash = 74, .digitWidth = 5, .digitPoint = 3},  // 1-0:62.7.0
+    {.hash = 56, .digitWidth = 3, .digitPoint = 0},  // 0-1:24.1.0
+    {.hash = 217},                                   // 1-0:1.4.0
+    {.hash = 229, .digitWidth = 5, .digitPoint = 3}, // 1-0:1.6.0
+    {.hash = 50},                                    // 0-0:98.1.0
 };
 
 /**
