@@ -11,7 +11,6 @@
 int main(const int argc, char *argv[])
 {
 
-    int num = 26;
     char *lines[] = {
         "0-0:1.0.0",   // DATE_TIME_STAMP
         "0-0:96.1.1",  // EQUIPMENT_IDENTIFIER
@@ -22,7 +21,6 @@ int main(const int argc, char *argv[])
         "0-0:96.14.0", // TARIFF_INDICATOR_ELECTRICITY
         "1-0:1.7.0",   // ACTUAL_ELECTRICITY_POWER_DELIVERED
         "1-0:2.7.0",   // ACTUAL_ELECTRICITY_POWER_RECEIVED
-        "0-0:96.13.0", // TEXT_MESSAGE_MAX_1024
         "1-0:32.7.0",  // INSTANTANEOS_VOLTAGE_L1
         "1-0:52.7.0",  // INSTANTANEOS_VOLTAGE_L2
         "1-0:72.7.0",  // INSTANTANEOS_VOLTAGE_L3
@@ -39,26 +37,37 @@ int main(const int argc, char *argv[])
         "1-0:1.4.0",   // CURRENT_AVERAGE_DEMAND_ACTIVE_ENERGY_IMPORT
         "1-0:1.6.0",   // MAXIMUM_DEMAND_RUNNING_MONTH
         "0-0:98.1.0",  // MAXIMUM_DEMAND_LAST_13_MONTHS
+        "0-0:96.13.0", // TEXT_MESSAGE_MAX_1024
+        "0-0:17.0.0",  // whatever this is, but it's 999
+        "0-0:96.1.4",  // idk what this is either
+        "0-1:24.2.3",  // gas
     };
 
-    unsigned char *hashes = malloc(sizeof(unsigned char) * num);
+#define len 29
+
+    unsigned short *hashes = malloc(sizeof(unsigned short) * len);
 
     printf("Calculating hashes\n");
 
-    for (int i = 0; i < num; i++)
+    // write hashes
+    FILE *f = fopen("hashes.out", "w");
+
+    for (int i = 0; i < len; i++)
     {
-        unsigned char hash_i = hash(lines[i], strlen(lines[i]));
+        unsigned short hash_i = hash(lines[i], strlen(lines[i]));
         printf("[%d]The hash of '%s' is %lu\n", i, lines[i], hash_i);
         hashes[i] = hash_i;
+        fprintf(f, "%s = %d,\n", lines[i], hash_i);
     }
+    fclose(f);
 
     printf("Checking hashes\n");
 
     // Iterate through the hashs to find duplicates
-    for (int currentHash = 0; currentHash < num; currentHash++)
+    for (int currentHash = 0; currentHash < len; currentHash++)
     {
         // Iterate through all hashes
-        for (int i = 0; i < num && i != currentHash; i++)
+        for (int i = 0; i < len && i != currentHash; i++)
         {
             if (hashes[currentHash] == hashes[i])
             {

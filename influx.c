@@ -112,7 +112,6 @@ int influxConnect(struct influx_config *config)
 
 int influxAuthenticateAndValidate(struct influx_config *config)
 {
-    // http://iot.lan:8086/api/v2/buckets
     // HTTP / 1.1 200 OK
     char HTTPBuffer[2048];
     int len = constructHTTPGetHeader(config, HTTPBuffer, sizeof(HTTPBuffer), "/api/v2/buckets");
@@ -156,7 +155,7 @@ int influxWrite(struct influx_config *config, char *line, int lineLength)
     int nread = sread(config->sockfd, HTTPBuffer, len, 2);
     if (nread <= 0)
     {
-        printErrno(__func__, "An error occured reading the reply");
+        printErrno(__func__, "An error occured reading the reply (%d)", nread);
         return 0;
     }
 

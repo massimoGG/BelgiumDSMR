@@ -12,6 +12,16 @@
         "format": "c",
         "initializer_list": "c",
         "span": "c",
-        "text_encoding": "c"
+        "text_encoding": "c",
+        "hash.h": "c",
+        "variant": "c",
+        "charconv": "c",
+        "optional": "c",
+        "system_error": "c",
+        "functional": "c",
+        "tuple": "c",
+        "type_traits": "c",
+        "utility": "c",
+        "compare": "c"
     }
 }

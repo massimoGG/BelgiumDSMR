@@ -51,59 +51,66 @@
  * (Carriage Return / Line Feed).
  */
 
-/**
- * OBIS references
- */
-#define DATE_TIME_STAMP "0-0:1.0.0"       // TST
-#define EQUIPMENT_IDENTIFIER "0-0:96.1.1" // Sn (n=0..96), tag 9
-// Tarrif Meter kWh
-#define METER_READING_ELECTRICITY_DELIVERED_TO_CLIENT_TARIFF_1 "1-0:1.8.1" // F9(3,3)
-#define METER_READING_ELECTRICITY_DELIVERED_TO_CLIENT_TARIFF_2 "1-0:1.8.2" // F9(3,3)
-#define METER_READING_ELECTRICITY_DELIVERED_BY_CLIENT_TARIFF_1 "1-0:2.8.1" // F9(3,3)
-#define METER_READING_ELECTRICITY_DELIVERED_BY_CLIENT_TARIFF_2 "1-0:2.8.2" // F9(3,3)
-#define TARIFF_INDICATOR_ELECTRICITY "0-0:96.14.0"                         // S4
-// Power delivery/receiving
-#define ACTUAL_ELECTRICITY_POWER_DELIVERED "1-0:1.7.0" // F5(3,3)
-#define ACTUAL_ELECTRICITY_POWER_RECEIVED "1-0:2.7.0"  // F5(3,3)
-
-// Text message max 1024 characters
-#define TEXT_MESSAGE_MAX_1024 "0-0:96.13.0" // Sn (n=0..2048????????)
-
-// Voltages
-#define INSTANTANEOS_VOLTAGE_L1 "1-0:32.7.0" // F4(1,1)
-#define INSTANTANEOS_VOLTAGE_L2 "1-0:52.7.0" // F4(1,1)
-#define INSTANTANEOS_VOLTAGE_L3 "1-0:72.7.0" // F4(1,1)
-// Currents
-#define INSTANTANEOS_CURRENT_L1 "1-0:31.7.0" // F5(1,1)
-#define INSTANTANEOS_CURRENT_L2 "1-0:51.7.0" // F5(1,1)
-#define INSTANTANEOS_CURRENT_L3 "1-0:71.7.0" // F5(1,1)
-// Instantaneous active (positive/negative) power
-#define INSTANTANEOUS_ACTIVE_POSITIVE_POWER_L1 "1-0:21.7.0" // F5(3,3)
-#define INSTANTANEOUS_ACTIVE_POSITIVE_POWER_L2 "1-0:41.7.0" // F5(3,3)
-#define INSTANTANEOUS_ACTIVE_POSITIVE_POWER_L3 "1-0:61.7.0" // F5(3,3)
-#define INSTANTANEOUS_ACTIVE_NEGATIVE_POWER_L1 "1-0:22.7.0" // F5(3,3)
-#define INSTANTANEOUS_ACTIVE_NEGATIVE_POWER_L2 "1-0:42.7.0" // F5(3,3)
-#define INSTANTANEOUS_ACTIVE_NEGATIVE_POWER_L3 "1-0:62.7.0" // F5(3,3)
-
-// Device Type
-#define DEVICE_TYPE "0-1:24.1.0" // F3(0,0)
-
-#define CURRENT_AVERAGE_DEMAND_ACTIVE_ENERGY_IMPORT "1-0:1.4.0" // F5(3,3) Unit: kW ???
-
-// Peak power of the running month
-#define MAXIMUM_DEMAND_RUNNING_MONTH "1-0:1.6.0"   // (TST)(F5(3x3)) Unit kW
-#define MAXIMUM_DEMAND_LAST_13_MONTHS "0-0:98.1.0" // (TST)(F5(3,3)) Unit kW
-
-/**
- * DSMR Telegram
- */
-typedef struct DSMR
+typedef enum
 {
+    BIT_STRING = 4,
+    DOUBLE_LONG = 5,
+    BIT_STRING_DOUBLE = 25,
+    TIMESTAMP = 26,
+    TIMESTAMP_DOUBLE = 27,
+} COSEMType;
 
-} DSMR_T;
+/**
+ * OID Mapping enum
+ */
+typedef enum
+{
+    DATE_TIME_STAMP = 47216,                                        // "0-0:1.0.0" // TST
+    EQUIPMENT_IDENTIFIER = 3867,                                    // "0-0:96.1.1" // Sn (n=0..96), tag 9
+    METER_READING_ELECTRICITY_DELIVERED_TO_CLIENT_TARIFF_1 = 22449, // "1-0:1.8.1" // F9(3,3)
+    METER_READING_ELECTRICITY_DELIVERED_TO_CLIENT_TARIFF_2 = 22450, // "1-0:1.8.2" // F9(3,3)
+    METER_READING_ELECTRICITY_DELIVERED_BY_CLIENT_TARIFF_1 = 24129, // "1-0:2.8.1" // F9(3,3)
+    METER_READING_ELECTRICITY_DELIVERED_BY_CLIENT_TARIFF_2 = 24130, // "1-0:2.8.2" // F9(3,3)
+    TARIFF_INDICATOR_ELECTRICITY = 27484,                           // "0-0:96.14.0" // S4
+    ACTUAL_ELECTRICITY_POWER_DELIVERED = 22392,                     // "1-0:1.7.0" // F5(3,3)
+    ACTUAL_ELECTRICITY_POWER_RECEIVED = 24072,                      // "1-0:2.7.0"  // F5(3,3)
+    INSTANTANEOUS_VOLTAGE_L1 = 47722,                               // "1-0:32.7.0" // F4(1,1)
+    INSTANTANEOUS_VOLTAGE_L2 = 17482,                               // "1-0:52.7.0" // F4(1,1)
+    INSTANTANEOUS_VOLTAGE_L3 = 52778,                               // "1-0:72.7.0" // F4(1,1)
+    INSTANTANEOUS_CURRENT_L1 = 44698,                               // "1-0:31.7.0" // F5(1,1)
+    INSTANTANEOUS_CURRENT_L2 = 14458,                               // "1-0:51.7.0" // F5(1,1)
+    INSTANTANEOUS_CURRENT_L3 = 49754,                               // "1-0:71.7.0" // F5(1,1)
+    INSTANTANEOUS_ACTIVE_POSITIVE_POWER_L1 = 59818,                 // "1-0:21.7.0" // F5(3,3)
+    INSTANTANEOUS_ACTIVE_POSITIVE_POWER_L2 = 29578,                 // "1-0:41.7.0" // F5(3,3)
+    INSTANTANEOUS_ACTIVE_POSITIVE_POWER_L3 = 64874,                 // "1-0:61.7.0" // F5(3,3)
+    INSTANTANEOUS_ACTIVE_NEGATIVE_POWER_L1 = 62842,                 // "1-0:22.7.0" // F5(3,3)
+    INSTANTANEOUS_ACTIVE_NEGATIVE_POWER_L2 = 32602,                 // "1-0:42.7.0" // F5(3,3)
+    INSTANTANEOUS_ACTIVE_NEGATIVE_POWER_L3 = 2362,                  // "1-0:62.7.0" // F5(3,3)
+    DEVICE_TYPE = 53290,                                            // "0-1:24.1.0" // F3(0,0)
+    CURRENT_AVERAGE_DEMAND_ACTIVE_ENERGY_IMPORT = 22224,            // "1-0:1.4.0" // F5(3,3) Unit: kW ???
+    MAXIMUM_DEMAND_RUNNING_MONTH = 22336,                           // "1-0:1.6.0"  // (TST)(F5(3,3)) Unit kW
+    MAXIMUM_DEMAND_LAST_13_MONTHS = 9914,                           // "0-0:98.1.0" // (TST)(F5(3,3)) Unit kW
+    TEXT_MESSAGE_MAX_1024 = 27394,                                  // "0-0:96.13.0"// Sn (n=0..2048)
+} OIDHashes;
 
-void decodeLine(char *, int, struct DSMR *);
-void decodeOBISHashKeyValue(char *, int, int *, int *, unsigned char *);
-int findOBISOIDByHash(unsigned char hash);
+/**
+ * HashMap to functionpointer
+ */
+typedef struct hashkeyval
+{
+    unsigned short hash;
+
+    unsigned char *name;
+    unsigned int namelen;
+
+    COSEMType type;
+    // unsigned char digitWidth; // Total number of digits
+    // unsigned char digitPoint; // number of digits after decimal point
+    unsigned char next; // Points to the next index inside the OIDMap if this is a multi value
+
+    // void (*handler)(char *line, int lineLength);
+} hashkeyval_t;
+
+int decodeLine(char *, char *, int);
 
 #endif

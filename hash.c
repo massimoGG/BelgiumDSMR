@@ -2,13 +2,13 @@
 /**
  * A dirty simple hash function I quickly made
  */
-unsigned char hash(char *line, int lineLength)
+unsigned short hash(char *line, int lineLength)
 {
-    unsigned char hash = 0;
+    unsigned short hash = 0;
 
     for (int i = 0; i < lineLength; i++)
     {
-        hash = line[i] * i - hash;
+        hash = (line[i] - hash * i);
     }
 
     return hash;
