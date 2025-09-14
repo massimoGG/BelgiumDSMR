@@ -1,27 +1,25 @@
 #ifndef INFLUX_H
 #define INFLUX_H
 
+#include "http.h"
+
 typedef struct influx_config
 {
-    int sockfd;
-    char *remote_host;
-    unsigned short remote_port;
+    struct http_config httpConfig;
 
-    char *db;
     char *bucket;
     char *organization;
     char *token;
+
 } influx_config_t;
 
-void influxInit(struct influx_config *config, char *host, unsigned short port,
-                char *db, char *bucket, char *token);
-int influxConnect(struct influx_config *config);
-int influxAuthenticateAndValidate(struct influx_config *config);
-int influxWrite(struct influx_config *config, char *line, int lineLength);
+struct influx_config influx_init(
+    struct http_config *hconfig,
+    char *organization, char *bucket, char *token);
 
-// Helper functions
-size_t constructHTTPGetHeader(struct influx_config *config, char *buffer, size_t bufferlen, char *endpoint);
-size_t constructHTTPPostHeader(struct influx_config *config, char *buffer, size_t bufferlen, char *endpoint, size_t contentLength);
-int sread(int fd, void *buf, size_t nbytes, int timeout);
-int checkHTTPCode(char *__restrict__ s);
+int influx_connect(struct influx_config *config);
+int influx_authenticate(struct influx_config *config);
+int influx_write_DSMR(influx_config_t *config, char *line, int lineLength);
+
+time_t convertTimestamp(char *line);
 #endif

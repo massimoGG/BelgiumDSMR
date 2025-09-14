@@ -1,5 +1,7 @@
 # DSMR P1 Port Reader
 
+![Alt text](/Grafana.png?raw=true "Grafana Dashboard")
+
 ## Overview
 
 This is a personal project aimed at reading the serial DSMR P1 port of my Fluvius (Belgium) digital electricity meter. The project is developed in C and serves as a proof of concept for future implementations. The ultimate goal is to transition this project to an STM32 microcontroller with Ethernet capabilities, allowing for more robust and efficient data handling.

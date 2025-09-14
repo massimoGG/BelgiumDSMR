@@ -9,4 +9,7 @@ void printErrno(const char *prefix, const char *format, ...);
 
 #include <stdio.h>
 void _printLog(FILE *f, const char *prefix, const char *format, ...);
+
+int getByToken(char *line, int lineLength, int offset, char token);
+
 #endif

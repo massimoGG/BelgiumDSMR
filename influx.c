@@ -21,210 +21,122 @@
 
 #include "common.h"
 #include "influx.h"
+#include "http.h"
 
-void influxInit(struct influx_config *config, char *host, unsigned short port,
-                char *db, char *bucket, char *token)
+struct influx_config influx_init(
+    struct http_config *hconfig,
+    char *organization, char *bucket, char *token)
 {
-    config->remote_port = port;
-
-    size_t slen = strlen(host);
-    config->remote_host = malloc(slen + 1);
-    strncpy(config->remote_host, host, slen);
-    config->remote_host[slen] = 0;
-
-    slen = strlen(db);
-    config->db = malloc(slen);
-    strncpy(config->db, db, slen + 1);
-    config->db[slen] = 0;
-
-    slen = strlen(bucket);
-    config->bucket = malloc(slen + 1);
-    strncpy(config->bucket, bucket, slen);
-    config->bucket[slen] = 0;
-
-    slen = strlen(token);
-    config->token = malloc(slen + 1);
-    strncpy(config->token, token, slen);
-    config->token[slen] = 0;
+    return (struct influx_config){
+        .httpConfig = *hconfig,
+        .organization = organization,
+        .bucket = bucket,
+        .token = token,
+    };
 }
 
 /**
- * influxConnect connects with the first possible socket to InfluxDB
- * @returns the socket fd of the connection
+ * Connects to InfluxDB
+ * @returns 1 (true) in case we successfulyl connected or else 0
  */
-int influxConnect(struct influx_config *config)
+int influx_connect(struct influx_config *config)
 {
-    // Find suitable socket
-    char service[6];
-    sprintf(service, "%d", config->remote_port); // I hate this
-
-    struct addrinfo hints = {
-                        .ai_family = AF_UNSPEC, // IPv4 or IPv6, whatever
-                        .ai_socktype = SOCK_STREAM},
-                    *servinfo, *sip;
-
-    int ret;
-    if ((ret = getaddrinfo(config->remote_host, service, &hints, &servinfo)) == -1)
-    {
-        printErrno(__func__, "getaddrinfo failed");
-        return -1;
-    }
-
-    // Fetch first possible socket from servinfo
-    int sockfd = -1;
-    for (sip = servinfo; sip != NULL; sip = sip->ai_next)
-    {
-        if ((sockfd = socket(sip->ai_family, sip->ai_socktype, sip->ai_protocol)) == -1)
-        {
-            sockfd = -1;
-            continue;
-        }
-
-        // Now try to connect
-        if (connect(sockfd, sip->ai_addr, sip->ai_addrlen) == -1)
-        {
-            // Convert for debug
-            char ip[INET6_ADDRSTRLEN];
-            struct sockaddr_in *adr4 = (struct sockaddr_in *)sip->ai_addr;
-            void *adr = &(adr4->sin_addr);
-            inet_ntop(sip->ai_family, adr, ip, INET6_ADDRSTRLEN);
-
-            printErrno(__func__, "Connection failed to %s:%d\n", ip, ntohs(adr4->sin_port));
-            close(sockfd);
-            sockfd = -1;
-            continue;
-        }
-        break;
-    }
-
-    freeaddrinfo(servinfo);
-
-    if (sockfd == -1)
-    {
-        printErrno(__func__, "couldn't connect to server");
-        return -1;
-    }
-
-    config->sockfd = sockfd;
-
-    return sockfd;
-}
-
-int influxAuthenticateAndValidate(struct influx_config *config)
-{
-    // HTTP / 1.1 200 OK
-    char HTTPBuffer[2048];
-    int len = constructHTTPGetHeader(config, HTTPBuffer, sizeof(HTTPBuffer), "/api/v2/buckets");
-    if ((write(config->sockfd, HTTPBuffer, len)) <= 0)
-    {
-        printErrno(__func__, "couldn't send HTTP GET request");
+    if (http_connect(&(config->httpConfig)) == -1)
         return 0;
-    }
-
-    // Wait for reply
-    int nread = sread(config->sockfd, HTTPBuffer, len, 2);
-    if (nread <= 0)
-    {
-        printErrno(__func__, "An error occured reading the reply");
-        return 0;
-    }
-
-    // Check if reply is OK or not
-    int ret = checkHTTPCode(HTTPBuffer);
-    if (ret == 200)
-        return 1;
-    else
-        return 0;
-}
-
-int influxWrite(struct influx_config *config, char *line, int lineLength)
-{
-
-    char endpoint[512];
-    sprintf(endpoint, "/api/v2/write?bucket=%s&org=%s&precision=s", config->bucket, config->organization);
-
-    char HTTPBuffer[2048];
-    int len = constructHTTPPostHeader(config, HTTPBuffer, sizeof(HTTPBuffer), endpoint, lineLength);
-    if ((write(config->sockfd, HTTPBuffer, len)) <= 0)
-    {
-        printErrno(__func__, "couldn't send HTTP GET request");
-        return 0;
-    }
-
-    // Wait for reply
-    int nread = sread(config->sockfd, HTTPBuffer, len, 2);
-    if (nread <= 0)
-    {
-        printErrno(__func__, "An error occured reading the reply (%d)", nread);
-        return 0;
-    }
-
-    // Check if reply is OK or not
-    int ret = checkHTTPCode(HTTPBuffer);
-    if (ret == 200)
-        return 1;
-    else
-        return 0;
-}
-
-size_t constructHTTPGetHeader(struct influx_config *config, char *buffer, size_t bufferlen, char *endpoint)
-{
-    return sprintf(buffer, "GET %s HTTP/1.1\r\n"
-                           "Host: %s:%d\r\n"
-                           "User-Agent: DSMR/1.0\r\n"
-                           "Authorization: Token %s\r\n\r\n",
-                   endpoint, config->remote_host, config->remote_port,
-                   config->token);
-}
-
-size_t constructHTTPPostHeader(struct influx_config *config, char *buffer, size_t bufferlen, char *endpoint, size_t contentLength)
-{
-    return sprintf(buffer, "POST %s HTTP/1.1\r\n"
-                           "Host: %s:%d\r\n"
-                           "User-Agent: influxdb-client-cheader\r\n"
-                           "Content-Length: %d\r\n"
-                           "Authorization: Token %s\r\n\r\n",
-                   endpoint, config->remote_host, config->remote_port,
-                   contentLength, config->token);
-}
-
-// Helper functions
-int sread(int fd, void *buf, size_t nbytes, int timeout)
-{
-    fd_set set;
-    FD_ZERO(&set);
-    FD_SET(fd, &set);
-    struct timeval tv = {.tv_sec = timeout};
-
-    int ret = select(fd + 1, &set, NULL, NULL, &tv);
-    if (ret == -1)
-    {
-        printErrno(__func__, "select error");
-        return 0;
-    }
-    if (ret == 0)
-    {
-        printError(__func__, "Timeout!");
-        return 0;
-    }
-
-    // Read the reply
-    int nread = read(fd, buf, nbytes);
-    return nread;
+    return 1;
 }
 
 /**
- * checkHTTPCode parses the given HTTP response string and extracts the HTTP code
- * @returns HTTP code
+ * Performs HTTP GET Query with token and check if we get a 200 response
+ * @returns boolean, 0 in case an error occured, 1 in case the connection was authenticated
  */
-int checkHTTPCode(char *__restrict__ s)
+int influx_authenticate(struct influx_config *config)
 {
-    // HTTP/1.1 401 Unauthorized or HTTP/1.1 200 OK
-    int httpcode;
-    char *token;
-    token = strtok(s, " ");
-    token = strtok(NULL, " ");
-    httpcode = atoi(token);
+    int ret = http_get(&(config->httpConfig), "/api/v2/buckets", config->token);
+    if (ret == 200)
+        return 1;
 
-    return httpcode;
+    return 0;
+}
+
+/**
+ * Performs HTTP POST Query with token and Line protocol data
+ * @returns 0 if unsuccessfull HTTP response, 1 if HTTP 200 OK
+ */
+int influx_write_DSMR(influx_config_t *config, char *line, int lineLength)
+{
+    // Prepary URIQuery
+    char *query = calloc(128, 1);
+    sprintf(query, "bucket=%s&org=%s&precision=s",
+            config->bucket, config->organization);
+
+    char *measurement = "meter";
+    time_t t = convertTimestamp(line);
+
+    // Prepare Influx body
+    char *body = calloc(lineLength * 2, 1); // Allocate enough space
+    // +23 to remove the timestamp=,
+    sprintf(body, "%s %s %ld", measurement, line + 23, t);
+    int body_len = strlen(body);
+
+#if DEBUG
+    printLog(__func__, "body_length: %db\n", body_len);
+#endif
+    int ret = http_post(&(config->httpConfig), "/api/v2/write", query, config->token,
+                        body, body_len);
+
+    free(query);
+    free(body);
+
+    if (ret >= 200 && ret < 300)
+        return 1;
+
+    return -1;
+}
+/**
+ * Converts meter timestamp=YYMMDDhhmmssX to Unix timestamp
+ * Assuming the first element is timestamp
+ * //250914143330S
+ * //25Y 09M 14d 14h 33m 30s
+ */
+time_t convertTimestamp(char *line)
+{
+    struct tm t;
+
+    char year[3], month[3], day[3], hour[3], minute[3], second[3];
+
+    // Extract components from the timestamp
+    char *ts = line + 10;
+    strncpy(year, ts, 2);
+    year[2] = '\0';
+    strncpy(month, ts + 2, 2);
+    month[2] = '\0';
+    strncpy(day, ts + 4, 2);
+    day[2] = '\0';
+    strncpy(hour, ts + 6, 2);
+    hour[2] = '\0';
+    strncpy(minute, ts + 8, 2);
+    minute[2] = '\0';
+    strncpy(second, ts + 10, 2);
+    second[2] = '\0';
+
+    // Convert year to 2000s
+    int yearInt = atoi(year) + 2000 - 1900;
+
+    // Fill timestruct
+    t.tm_year = yearInt;
+    t.tm_mon = atoi(month) - 1;
+    t.tm_mday = atoi(day);
+    t.tm_hour = atoi(hour);
+    t.tm_min = atoi(minute);
+    t.tm_sec = atoi(second);
+    t.tm_isdst = 1; // timestamps from meter are never DST
+#if DEBUG
+    printLog(__func__, "Year %d\tMonth %d\tDay %d\n", t.tm_year, t.tm_mon, t.tm_mday);
+    printLog(__func__, "Hour %d\tMinute %d\tSecond %d\n", t.tm_hour, t.tm_min, t.tm_sec);
+
+    printLog(__func__, "time(NULL)=%ld\n", time(NULL));
+    printLog(__func__, "mktime(&t)=%ld\n", mktime(&t));
+#endif
+    return mktime(&t);
 }

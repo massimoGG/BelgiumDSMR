@@ -173,16 +173,6 @@ int findOBISOIDByHash(unsigned short hash)
     return -1;
 }
 
-int getByToken(char *line, int lineLength, int offset, char token)
-{
-    for (int i = offset; i < lineLength; i++)
-    {
-        if (line[i] == token)
-            return i;
-    }
-    return lineLength;
-}
-
 /**
  * writeKey copies the key to dst with length length and appends =
  * @returns the offset index
@@ -221,6 +211,12 @@ int fetchValue(COSEMType type, char *line, int lineLength, int *nextValue)
     if (type == TIMESTAMP)
     {
         characterOffset = getByToken(line, lineLength, 0, 'S');
+        // Daylight Saving Time
+        // Active: S
+        // Not active: W
+        // NOTE/WARNING: This might actually be an issue?
+        // I don't know if Fluvius changes the DST
+        // Might need getByToken('W') or something
         *nextValue = characterOffset + 3;
         return characterOffset;
     }
@@ -234,7 +230,6 @@ int fetchValue(COSEMType type, char *line, int lineLength, int *nextValue)
  * processLine parses a given line from DSMR Serial TTY and fills the
  * given DSMR_T
  *
- * TODO: Implement CRC checking
  * Logical names of COSEM objects uses OBIS (object identification system)
  *
  * Raw packet encoding:

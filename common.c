@@ -44,6 +44,12 @@ void _printLog(FILE *f, const char *prefix, const char *format, ...)
     va_end(va);
 }
 
-/**
- * Matches string for figuring out OID
- */
+int getByToken(char *line, int lineLength, int offset, char token)
+{
+    for (int i = offset; i < lineLength; i++)
+    {
+        if (line[i] == token)
+            return i;
+    }
+    return lineLength;
+}
