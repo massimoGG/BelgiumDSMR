@@ -82,6 +82,8 @@ cleanup:
 
 int run(int ttyfd, struct influx_config *iconfig)
 {
+    int ret = 0;
+
     /**
      * Line protocol handling
      */
@@ -102,7 +104,7 @@ int run(int ttyfd, struct influx_config *iconfig)
 
     for (;;)
     {
-        int readBytes = readTTY(ttyfd, lineBuffer, bufferLength);
+        readBytes = readTTY(ttyfd, lineBuffer, bufferLength);
         if (readBytes < 0)
         {
             printErrno(__func__, "readTTY returned a fatal response!");
@@ -122,7 +124,10 @@ int run(int ttyfd, struct influx_config *iconfig)
 
             // printLog(__func__, "Encoded DSMR: '%s'", influxBuffer);
 
-            influx_write_DSMR(iconfig, influxBuffer, totalOffset);
+            ret = influx_write_DSMR(iconfig, influxBuffer, totalOffset);
+            if (!ret)
+                printError(__func__, "Writing data to InfluxDB failed: (%dbytes) '%s'", totalOffset, influxBuffer);
+            // TODO: After x amount of failures, exit with failure?
 
             // clear influxBuffer
             clearBuffer(influxBuffer, LINE_BUFFER_SIZE);

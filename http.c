@@ -106,11 +106,13 @@ int http_connect(struct http_config *config)
 }
 
 /**
- * @returns int status code
+ * @returns int status code; 0 (false) on error
  */
 int http_get(struct http_config *config, char *uri, char *token)
 {
     char *headers = calloc(MAXHEADERSIZE, 1);
+    if (headers == NULL)
+        return 0;
 
     // Construct the headers
     sprintf(headers, "GET %s HTTP/1.1\r\n"
@@ -126,6 +128,8 @@ int http_get(struct http_config *config, char *uri, char *token)
 
     free(headers);
     char *response = calloc(MAXBODYSIZE, 1);
+    if (response == NULL)
+        return 0;
 
     // read response
     int read_len = 0;
@@ -149,13 +153,15 @@ int http_get(struct http_config *config, char *uri, char *token)
 }
 
 /**
- * @returns int status code
+ * @returns int status code; 0 (false) on error
  */
 int http_post(
     struct http_config *config, char *uri, char *query, char *token,
     char *post_data, int post_length)
 {
     char *body = malloc(MAXBODYSIZE);
+    if (body == NULL)
+        return 0;
 
     // Construct the headers
     sprintf(body, "POST %s?%s HTTP/1.1\r\n"

@@ -48,25 +48,24 @@ int influx_connect(struct influx_config *config)
 
 /**
  * Performs HTTP GET Query with token and check if we get a 200 response
- * @returns boolean, 0 in case an error occured, 1 in case the connection was authenticated
+ * @returns boolean, 0 in case an error occured, HTTP statuscode in case the connection was authenticated
  */
 int influx_authenticate(struct influx_config *config)
 {
-    int ret = http_get(&(config->httpConfig), "/api/v2/buckets", config->token);
-    if (ret == 200)
-        return 1;
-
-    return 0;
+    return http_get(&(config->httpConfig), "/api/v2/buckets", config->token);
 }
 
 /**
  * Performs HTTP POST Query with token and Line protocol data
- * @returns 0 if unsuccessfull HTTP response, 1 if HTTP 200 OK
+ * @returns 0 if unsuccessfull HTTP response or malloc error; or the HTTP statuscode
  */
 int influx_write_DSMR(influx_config_t *config, char *line, int lineLength)
 {
     // Prepary URIQuery
     char *query = calloc(128, 1);
+    if (query == NULL)
+        return 0;
+
     sprintf(query, "bucket=%s&org=%s&precision=s",
             config->bucket, config->organization);
 
@@ -75,6 +74,9 @@ int influx_write_DSMR(influx_config_t *config, char *line, int lineLength)
 
     // Prepare Influx body
     char *body = calloc(lineLength * 2, 1); // Allocate enough space
+    if (body == NULL)
+        return 0;
+
     // +23 to remove the timestamp=,
     sprintf(body, "%s %s %ld", measurement, line + 23, t);
     int body_len = strlen(body);
@@ -88,10 +90,7 @@ int influx_write_DSMR(influx_config_t *config, char *line, int lineLength)
     free(query);
     free(body);
 
-    if (ret >= 200 && ret < 300)
-        return 1;
-
-    return -1;
+    return ret;
 }
 /**
  * Converts meter timestamp=YYMMDDhhmmssX to Unix timestamp
