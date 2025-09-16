@@ -16,8 +16,8 @@ The DSMR (Dutch Smart Meter Requirements) P1 port provides access to real-time d
 - **Language**: C
 - **Functionality**: 
   - Reads data from the DSMR P1 port.
-  - Parses the data into meaningful information.
-  - Logs the data for further analysis.
+  - Parses the data and convert to line protocol
+  - Line protocol is then sent to InfluxDB
 
 ### Future Plans
 
@@ -34,3 +34,4 @@ To run this project, you will need:
 - A Raspberry Pi (or compatible device).
 - A Fluvius digital electricity meter with a DSMR P1 port.
 - A serial connection to the meter. (I bought this one: https://www.sossolutions.nl/slimme-meter-kabel-p1-kabel-3-meter)
+- An InfluxDB server
