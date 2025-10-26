@@ -55,37 +55,37 @@ struct hashkeyval OIDMap[] = {
      .type = DOUBLE_LONG,
      .next = 0},
 
-    {.hash = INSTANTANEOUS_VOLTAGE_L1,
-     .name = "instantaneous_voltage_L1",
-     .namelen = 24,
-     .type = DOUBLE_LONG,
-     .next = 0},
-    {.hash = INSTANTANEOUS_VOLTAGE_L2,
-     .name = "instantaneous_voltage_L2",
-     .namelen = 24,
-     .type = DOUBLE_LONG,
-     .next = 0},
-    {.hash = INSTANTANEOUS_VOLTAGE_L3,
-     .name = "instantaneous_voltage_L3",
-     .namelen = 24,
-     .type = DOUBLE_LONG,
-     .next = 0},
-
-    {.hash = INSTANTANEOUS_CURRENT_L1,
-     .name = "instantaneous_current_L1",
-     .namelen = 24,
-     .type = DOUBLE_LONG,
-     .next = 0},
-    {.hash = INSTANTANEOUS_CURRENT_L2,
-     .name = "instantaneous_current_L2",
-     .namelen = 24,
-     .type = DOUBLE_LONG,
-     .next = 0},
-    {.hash = INSTANTANEOUS_CURRENT_L3,
-     .name = "instantaneous_current_L3",
-     .namelen = 24,
-     .type = DOUBLE_LONG,
-     .next = 0},
+    // {.hash = INSTANTANEOUS_VOLTAGE_L1,
+    //  .name = "instantaneous_voltage_L1",
+    //  .namelen = 24,
+    //  .type = DOUBLE_LONG,
+    //  .next = 0},
+    // {.hash = INSTANTANEOUS_VOLTAGE_L2,
+    //  .name = "instantaneous_voltage_L2",
+    //  .namelen = 24,
+    //  .type = DOUBLE_LONG,
+    //  .next = 0},
+    // {.hash = INSTANTANEOUS_VOLTAGE_L3,
+    //  .name = "instantaneous_voltage_L3",
+    //  .namelen = 24,
+    //  .type = DOUBLE_LONG,
+    //  .next = 0},
+    //
+    // {.hash = INSTANTANEOUS_CURRENT_L1,
+    //  .name = "instantaneous_current_L1",
+    //  .namelen = 24,
+    //  .type = DOUBLE_LONG,
+    //  .next = 0},
+    // {.hash = INSTANTANEOUS_CURRENT_L2,
+    //  .name = "instantaneous_current_L2",
+    //  .namelen = 24,
+    //  .type = DOUBLE_LONG,
+    //  .next = 0},
+    // {.hash = INSTANTANEOUS_CURRENT_L3,
+    //  .name = "instantaneous_current_L3",
+    //  .namelen = 24,
+    //  .type = DOUBLE_LONG,
+    //  .next = 0},
 
     {.hash = INSTANTANEOUS_ACTIVE_POSITIVE_POWER_L1,
      .name = "instantaneous_active_positive_power_L1",
@@ -210,13 +210,15 @@ int fetchValue(COSEMType type, char *line, int lineLength, int *nextValue)
     }
     if (type == TIMESTAMP)
     {
-        characterOffset = getByToken(line, lineLength, 0, 'S');
         // Daylight Saving Time
         // Active: S
         // Not active: W
-        // NOTE/WARNING: This might actually be an issue?
-        // I don't know if Fluvius changes the DST
-        // Might need getByToken('W') or something
+        characterOffset = getByToken(line, lineLength, 0, 'S');
+        if (characterOffset == lineLength) {
+            // S not found -> W
+            characterOffset = getByToken(line, lineLength, 0, 'W');
+        }
+
         *nextValue = characterOffset + 3;
         return characterOffset;
     }
